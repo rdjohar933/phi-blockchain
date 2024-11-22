@@ -5,6 +5,7 @@ import json
 
 from flask import Flask, jsonify
 
+#Todo : add a class model for block
 class Blockchain :
 
     def __init__(self):
@@ -12,6 +13,7 @@ class Blockchain :
         block = self.mine_new_bock({'index':len(self.chain) + 1, 'timestamp' : str(datetime.datetime.now()), 'proof' : 1, 'previous_hash':'0',})
         self.create_block(block)
 
+    #Todo : rename this method to append_block since it no longer creates the block
     def create_block(self, block):
         self.chain.append(block)
         return block
