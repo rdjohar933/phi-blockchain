@@ -154,7 +154,6 @@ def connect_node():
     for node in nodes:
         blockchain.add_node(node)
 
-    index = blockchain.add_transaction(body['sender'], body['receiver'], body['amount'])
     response = {'message': f'All nodes are now connected.',
                 'nodes': list(blockchain.nodes)}
 
