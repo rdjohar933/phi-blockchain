@@ -65,9 +65,9 @@ class Blockchain :
         return True
 
     def add_transaction(self, sender, receiver, amount):
-        self.chain.append({'sender': sender,
-                           'receiver': receiver,
-                           'amount': amount})
+        self.transactions.append({'sender': sender,
+                                  'receiver': receiver,
+                                  'amount': amount})
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
 
@@ -105,10 +105,9 @@ blockchain = Blockchain()
 @app.route('/mine_block', methods=['GET'])
 def mine_block():
     previous_block = blockchain.get_previous_block()
-    #Todo : Verify that adding the transaction doesn't break the hash compatibility (if so, add the transaction during the mining attempts)
-    blockchain.add_transaction(sender=node_address, receiver='Akram', amount=1)
     block_mined = blockchain.mine_new_bock(previous_block)
     block = blockchain.create_block(block_mined)
+    blockchain.add_transaction(sender=node_address, receiver='Akram', amount=1)
     response = {'message': 'You mined successfully !',
                 'index': block['index'],
                 'timestamp': block['timestamp'],
@@ -125,8 +124,8 @@ def get_chain():
 
 @app.route('/is_valid', methods=['GET'])
 def is_valid():
-    is_valid = blockchain.is_chain_valid(blockchain.chain)
-    if is_valid:
+    status = blockchain.is_chain_valid(blockchain.chain)
+    if status:
         response = {'message': 'All good. The blockchain is valid.'}
     else:
         response = {'message': 'We have a problem. The blockchain is not valid.'}
