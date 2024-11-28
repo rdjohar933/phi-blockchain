@@ -106,7 +106,7 @@ blockchain = Blockchain()
 def mine_block():
     previous_block = blockchain.get_previous_block()
     #Todo : Verify that adding the transaction doesn't break the hash compatibility (if so, add the transaction during the mining attempts)
-    blockchain.add_transaction(sender=node_address, receiver='phi-partners', amount=1)
+    blockchain.add_transaction(sender=node_address, receiver='Youness', amount=1)
     block_mined = blockchain.mine_new_bock(previous_block)
     block = blockchain.create_block(block_mined)
     response = {'message': 'You mined successfully !',
@@ -171,4 +171,4 @@ def replace_chain():
                     'actual_chain': blockchain.chain}
     return jsonify(response), 200
 
-app.run(host= '0.0.0.0', port= 5000)
+app.run(host= '0.0.0.0', port= 5003)
