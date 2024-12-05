@@ -169,4 +169,6 @@ def replace_chain():
                     'actual_chain': blockchain.chain}
     return jsonify(response), 200
 
-app.run(host= '0.0.0.0', port= 5003)
+
+def main_run():
+    app.run(host= '0.0.0.0', port= 5003, debug=False, use_reloader=False)

@@ -94,13 +94,13 @@ class Blockchain :
 
 
 
-# Mining our Blockchain
-
 app = Flask(__name__)
 
 node_address = str(uuid4()).replace('-','')
 
 blockchain = Blockchain()
+# Mining our Blockchain
+
 
 @app.route('/mine_block', methods=['GET'])
 def mine_block():
@@ -169,4 +169,5 @@ def replace_chain():
                     'actual_chain': blockchain.chain}
     return jsonify(response), 200
 
-app.run(host= '0.0.0.0', port= 5001)
+def main_run():
+    app.run(host= '0.0.0.0', port= 5001, debug=False, use_reloader=False)
