@@ -1,15 +1,13 @@
-import node_5001
-import node_5002
-import node_5003
+from multiprocessing.pool import Pool
+
+import blockchain_api
 import multiprocessing
 
+
 if __name__ == '__main__':
-    t1 = multiprocessing.Process(target= node_5001.main_run)
-    t2 = multiprocessing.Process(target= node_5002.main_run)
-    t3 = multiprocessing.Process(target= node_5003.main_run)
-    t1.start()
-    t2.start()
-    t3.start()
-    t1.join()
-    t2.join()
-    t3.join()
+
+    initial_port = 5000
+    number_of_instances = 3
+    processes = []
+    with Pool(number_of_instances) as pool:
+        pool.map(blockchain_api.main, range(initial_port + 1, initial_port + number_of_instances+1))
