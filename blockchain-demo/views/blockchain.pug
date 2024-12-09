@@ -5,7 +5,7 @@ block content
         button.btn.btn-primary.ladda-button(id='blockmineButton', data-style='expand-right')
             span.ladda-label #{__('Mine')}
         button.btn.btn-primary.ladda-button(id='openFormButton', data-style='expand-right', onclick='openForm()')
-            span.ladda-label Open Form
+            span.ladda-label Add Transaction
         .row.row-horizon(id="chain")
             each block in chainBlocks
                 .col-xs-7
@@ -113,7 +113,6 @@ block content
             buttonTransaction.onclick = () => processForm(5001)
             setInterval(fetchBlocks, 30000);
 
-            const openFormButton = document.getElementById('openFormButton');
             const formModal = document.getElementById('formModal');
             const closeFormButton = document.getElementById('closeFormButton');
 
