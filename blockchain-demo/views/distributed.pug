@@ -1,0 +1,170 @@
+extends layout
+
+block content
+  .modal#formModal
+    .modal-content
+
+      span#closeFormButton.close &times;
+
+      form.form-horizontal#transactionForm
+        .form-group
+          .col-sm-10
+        .form-group
+          label.col-sm-2.control-label Sender:
+          .col-sm-10
+            input.form-control( id="sender")
+        .form-group
+          label.col-sm-2.control-label Receiver:
+          .col-sm-10
+            input.form-control( id="receiver")
+        .form-group
+          label.col-sm-2.control-label Amount:
+          .col-sm-10
+            input.form-control(type='number', id="amount")
+        .form-group
+          .col-sm-2
+            i.icon-spinner.icon-spin.icon-large
+          .col-sm-10
+            button.btn.btn-primary.ladda-button(data-style='expand-right', id="send-transaction")
+              span.ladda-label send transaction
+  .container-fluid
+    h1 #{__('Distributed Blockchain')}
+    - var peers = {1: 'A', 2: 'B', 3: 'C'}
+      each peer, chain in peers
+        h3 #{__('Peer')} #{peer}
+        button.btn.btn-primary.ladda-button(id=`blockmineButton-${peer}`, data-style='expand-right')
+          span.ladda-label #{__('Mine')}
+        button.btn.btn-primary.ladda-button(id=`openFormButton-${peer}`, data-style='expand-right', onclick='openForm()')
+          span.ladda-label Open Form
+        .row.row-horizon(id=`chain-${peer}`)
+
+
+  script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+  script.
+    $(function() {
+      fetchBlocks("chain-A", 5001)
+      fetchBlocks("chain-B", 5002)
+      fetchBlocks("chain-C", 5003)
+      setup();
+    });
+    async function getChainBlocks(port) {
+      try {
+        const response = await axios.get(`http://192.168.10.58:${port}/chain`);
+        const blocks = response.data.chain;
+        return blocks
+    } catch (error) {
+    console.error('Error fetching blocks:', error);
+    }
+    }
+
+    async function getHashedBlock(block, port) {
+      try {
+        const response = await axios.post(`http://192.168.10.58:${port}/hash`, block);
+        block.hash = response.data.hash;
+        return block
+    } catch (error) {
+    console.error('Error fetching blocks:', error);
+    }
+    }
+    async function getHashedBlocksFromChain(port) {
+      const blocks = await getChainBlocks(port)
+      console.log(`retrieved ${blocks.length} blocks from blockchain`)
+      return await Promise.all(blocks.map(block => getHashedBlock(block, port)));
+    }
+    async function fetchBlocks(elementId, port) {
+      try {
+
+        const blockContainer = document.getElementById(elementId);
+        blockContainer.innerHTML = '';
+        const blocks = await getHashedBlocksFromChain(port);
+        for (const block of blocks) {
+          const blockElement = await fetchBlockTemplate(block);
+          const wrapperDiv = document.createElement('div');
+          wrapperDiv.className = 'col-xs-7';
+          wrapperDiv.innerHTML = blockElement;
+          blockContainer.appendChild(wrapperDiv);
+    }
+    } catch (error) {
+    console.error('Error fetching blocks:', error);
+    }
+    }
+
+    async function fetchBlockTemplate(block) {
+      try {
+        const response = await axios.post('/render-block', { block });
+        return response.data.html;
+    } catch (error) {
+    console.error('Error fetching block template:', error);
+    return `<div>Error loading block ${block.index}</div>`;
+    }
+    }
+    async function mineBlock(port, button)
+    {
+      button.disabled=true
+      try {
+        await axios.post(`http://192.168.10.58:${port}/block`);
+      } catch (error) {
+        console.error('Error fetching block template:', error);
+      }
+      button.disabled = false
+
+    }
+    function setup() {
+      const buttonA = document.getElementById('blockmineButton-A');
+      const buttonB = document.getElementById('blockmineButton-B');
+      const buttonC = document.getElementById('blockmineButton-C');
+      buttonA.onclick= () => mineBlock(5001,buttonA)
+      buttonB.onclick= () => mineBlock(5002,buttonB)
+      buttonC.onclick= () => mineBlock(5003,buttonC)
+
+      const formbuttonA = document.getElementById('openFormButton-A');
+      const formbuttonB = document.getElementById('openFormButton-B');
+      const formbuttonC = document.getElementById('openFormButton-C');
+      formbuttonA.onclick = () => openForm(5001)
+      formbuttonB.onclick = () => openForm(5002)
+      formbuttonC.onclick = () => openForm(5003)
+      setInterval(()=>fetchBlocks("chain-A",5001), 30000);
+      setInterval(()=>fetchBlocks("chain-B",5002), 30000);
+      setInterval(()=>fetchBlocks("chain-C",5003), 30000);
+
+      // Close the form modal
+      closeFormButton.onclick = function () {
+        formModal.style.display = 'none';
+      };
+
+      // Close the form modal when clicking outside of the form
+      window.onclick = function (event) {
+        if (event.target == formModal) {
+          formModal.style.display = 'none';
+        }
+      };
+    }
+    function openForm(port) {
+      const formModal = document.getElementById('formModal');
+      formModal.style.display = 'block';
+      const buttonTransaction = document.getElementById('send-transaction');
+      buttonTransaction.onclick = () => processForm(port)
+    }
+    async function processForm(port) {
+      const sender = document.getElementById('sender').value;
+      const receiver = document.getElementById('receiver').value;
+      const amount = document.getElementById('amount').value;
+
+      const transaction = {}
+      transaction.sender = sender
+      transaction.receiver = receiver
+      transaction.amount = amount
+
+      try {
+        console.log("sending transaction on port " + port)
+        console.log(transaction)
+        await axios.post(`http://192.168.10.58:${port}/transaction`, transaction);
+        window.alert("Transaction added");
+
+      } catch (error) {
+        console.error('Error fetching block template:', error);
+      }
+
+      formModal.style.display = 'none';
+
+    }

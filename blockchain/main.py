@@ -1,7 +1,6 @@
 from multiprocessing.pool import Pool
 
 import blockchain_api
-import multiprocessing
 
 
 if __name__ == '__main__':

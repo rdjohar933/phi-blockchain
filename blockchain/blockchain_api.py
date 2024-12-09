@@ -1,33 +1,40 @@
+import json
+
 from flask import Flask, jsonify, request
 from uuid import uuid4
 
+from block import Block
 from blockchain import Blockchain
 from transaction import Transaction
+from flask_cors import CORS
 
 # Mining our Blockchain
 
 app = Flask(__name__)
-
+CORS(app)
 node_address = str(uuid4()).replace('-', '')
 
 blockchain = Blockchain()
 
+
 @app.route('/block', methods=['POST'])
 def mine_block():
     previous_block = blockchain.get_previous_block()
+    blockchain.add_transaction(sender=node_address, receiver='phi-partners', amount=1.0)
     block_mined = blockchain.mine_new_bock(previous_block)
     block = blockchain.append_block(block_mined)
-    blockchain.add_transaction(sender=node_address, receiver='phi-partners', amount=1)
     response = {'message': 'You mined successfully !',
                 'block': block
                 }
     return jsonify(response), 200
 
+
 @app.route('/chain', methods=['GET'])
 def get_chain():
-    response = {'chain': blockchain.chain,
+    response = {'chain': json.loads(Block.schema().dumps(blockchain.chain, many=True)),
                 'length': len(blockchain.chain)}
     return jsonify(response), 200
+
 
 @app.route('/validity', methods=['GET'])
 def is_valid():
@@ -38,17 +45,28 @@ def is_valid():
         response = {'message': 'We have a problem. The blockchain is not valid.'}
     return jsonify(response), 200
 
+
+@app.route('/hash', methods=['POST'])
+def hash_block():
+    body = request.get_data(as_text=True)
+    try:
+        block = Block.from_json(body)
+        hash = block.get_hash()
+        return jsonify({"block": block, "hash":hash}), 200
+    except ValueError:
+        return jsonify({'error': 'Bad request', "block": body}), 400
+
+
 @app.route('/transaction', methods=['POST'])
 def add_transaction():
     body = request.get_data(as_text=True)
     try:
         transaction = Transaction.from_json(body)
-        index = blockchain.add_transaction(transaction.sender, transaction.receiver, transaction.amount)
-        response = {'message': f'This transaction will be added to block {index}'}
-
+        blockchain.add_transaction(transaction.sender, transaction.receiver, transaction.amount)
+        response = {'message': f'This transaction will be added to block {len(blockchain.chain)+1}'}
         return jsonify(response), 201
-    except ValueError :
-        return "Bad request", 400
+    except ValueError:
+        return jsonify({'error': 'Bad request'}), 400
 
 
 @app.route('/connect', methods=['POST'])
@@ -66,6 +84,7 @@ def connect_node():
 
     return jsonify(response), 201
 
+
 @app.route('/chain', methods=['POST'])
 def replace_chain():
     is_replaced = blockchain.replace_chain()
@@ -79,8 +98,9 @@ def replace_chain():
 
 
 def main(port):
+    print(f"I am node {node_address}")
     app.run(host='0.0.0.0', port=port)
 
 
 if __name__ == '__main__':
-    main(port=5000)
+    main(port=5001)

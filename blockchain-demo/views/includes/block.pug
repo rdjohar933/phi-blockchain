@@ -1,0 +1,43 @@
+.well(id='block'+block.index+'chain0well', class='well-success mdl-card mdl-shadow--2dp')
+  form.form-horizontal
+
+    .form-group
+      label.col-sm-2.control-label(for='block'+block.index+'chain'+block.chain+'number') Block:
+      .col-sm-10
+        .input-group
+          span.input-group-addon #
+          input.form-control(id='block'+block.index+'chain'+block.chain+'number', type='text', value=block.index, disabled)
+
+    .form-group
+      label.col-sm-2.control-label(for='block'+block.index+'chain0nonce') Nonce:
+      .col-sm-10
+        input.form-control(id='block'+block.index+'chain0nonce', type='text', value=block.proof, disabled)
+    .form-group
+      label.col-sm-2.control-label Tx:
+      .col-sm-10.scrollable-horizontal
+        each tx in block.transactions
+          .input-group
+            .input-group-addon φ
+            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txvalue', type='text', value=tx.amount, disabled)
+            .input-group-addon From:
+            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txfrom', type='text', value=tx.sender, disabled)
+            .input-group-addon -&gt;
+            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txto', type='text', value=tx.receiver, disabled)
+
+
+    #state.form-group
+      label.col-sm-2.control-label(for='block'+block.index+'chain0previous') Previous hash:
+      .col-sm-10
+        input.form-control(id='block'+block.index+'chain0previous', type='text', value=block.previous_hash, disabled)
+
+    #state.form-group
+      label.col-sm-2.control-label(for='block'+block.index+'chain0hash') Hash:
+      .col-sm-10
+        input.form-control(id='block'+block.index+'chain0hash', type='text', value=block.hash, disabled)
+
+    .form-group
+      .col-sm-2
+        i.icon-spinner.icon-spin.icon-large
+      .col-sm-10
+        // button.btn.btn-primary.ladda-button(id='block'+block.block+'chain'+block.chain+'mineButton', data-style='expand-right')
+        //   span.ladda-label #{__('Mine')}
