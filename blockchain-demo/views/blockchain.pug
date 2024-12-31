@@ -1,15 +1,20 @@
 extends layout
 block content
-    .container-fluid
-        h1 #{__('Blockchain')}
-        button.btn.btn-primary.ladda-button(id='blockmineButton', data-style='expand-right')
-            span.ladda-label #{__('Mine')}
-        button.btn.btn-primary.ladda-button(id='openFormButton', data-style='expand-right', onclick='openForm()')
-            span.ladda-label Add Transaction
-        .row.row-horizon(id="chain")
-            each block in chainBlocks
-                .col-xs-7
-                    include includes/block
+    .container-lg.shadow-4-strong.pt-2.mt-2
+        .d-flex.align-items-center.justify-content-between.mt-4
+            .d-flex.align-items-center
+                h1.mb-0 #{__('Blockchain')}
+                div.form-check.form-switch.ms-3.ml-4
+                    input.form-check-input(type="checkbox", role="switch", checked=true)#refreshSwitch
+                    label.form-check-label.small(for='refreshSwitch') enable auto refresh
+            .ms-auto
+                button.btn.btn-primary.ladda-button(id='blockmineButton', data-style='expand-right')
+                    span.ladda-label #{__('Mine')}
+                button.btn.btn-primary.ladda-button(id='openFormButton', data-style='expand-right', onclick='openForm()')
+                    span.ladda-label Add Transaction
+
+        .scrollable-horizontal
+            .d-flex.flex-row.mt-4#chain
 
 
     .modal#formModal
@@ -47,7 +52,8 @@ block content
         });
         async function getChainBlocks(port) {
             try {
-                const response = await axios.get(`http://192.168.10.58:${port}/chain`);
+
+                const response = await axios.get(`http://localhost:${port}/chain`);
                 return response.data.chain;
             } catch (error) {
                 console.error('Error fetching blocks:', error);
@@ -56,7 +62,7 @@ block content
 
         async function getHashedBlock(block, port) {
             try {
-                const response = await axios.post(`http://192.168.10.58:${port}/hash`, block);
+                const response = await axios.post(`http://localhost:${port}/hash`, block);
                 block.hash = response.data.hash;
                 return block
             } catch (error) {
@@ -68,27 +74,34 @@ block content
             console.log(`retrieved ${blocks.length} blocks from blockchain`)
             return await Promise.all(blocks.map(block => getHashedBlock(block, port)));
         }
-        async function fetchBlocks() {
-            try {
+        async function fetchBlocks(chainId = 0) {
+            if (!document.getElementById("refreshSwitch").checked) return;
 
-                const blockContainer = document.getElementById("chain");
-                blockContainer.innerHTML = '';
-                const blocks = await getHashedBlocksFromChain(5001);
-                for (const block of blocks) {
-                    const blockElement = await fetchBlockTemplate(block);
-                    const wrapperDiv = document.createElement('div');
-                    wrapperDiv.className = 'col-xs-7';
-                    wrapperDiv.innerHTML = blockElement;
-                    blockContainer.appendChild(wrapperDiv);
+            const blocks = await getHashedBlocksFromChain(5001);
+            const blockContainer = document.getElementById("chain");
+
+            for (const block of blocks) {
+                const existingBlock = document.getElementById('block' + block.index + 'chain' + chainId + 'well');
+                const blockElement = await fetchBlockTemplate(block, chainId);
+                const parser = new DOMParser();
+                const newNode = parser.parseFromString(blockElement, 'text/html').body.firstChild;
+
+                if (existingBlock) {
+                    existingBlock.replaceWith(newNode);
+                } else {
+                    blockContainer.appendChild(newNode);
                 }
-            } catch (error) {
-                console.error('Error fetching blocks:', error);
+            }
+
+            const existingBlocks = blockContainer.children;
+            while (existingBlocks.length > blocks.length) {
+                blockContainer.removeChild(existingBlocks[existingBlocks.length - 1]);
             }
         }
 
-        async function fetchBlockTemplate(block) {
+        async function fetchBlockTemplate(block, chainId = 0) {
             try {
-                const response = await axios.post('/render-block', {block});
+                const response = await axios.post('/render-block', {block, chainId});
                 return response.data.html;
             } catch (error) {
                 console.error('Error fetching block template:', error);
@@ -100,7 +113,7 @@ block content
             button.disabled=true
             try {
                 console.log("mining on port " + port)
-                await axios.post(`http://192.168.10.58:${port}/block`);
+                await axios.post(`http://localhost:${port}/block`);
             } catch (error) {
                 console.error('Error fetching block template:', error);
             }
@@ -111,7 +124,7 @@ block content
             button.onclick = () => mineBlock(5001,button)
             const buttonTransaction = document.getElementById('send-transaction');
             buttonTransaction.onclick = () => processForm(5001)
-            setInterval(fetchBlocks, 30000);
+            setInterval(fetchBlocks, 10000);
 
             const formModal = document.getElementById('formModal');
             const closeFormButton = document.getElementById('closeFormButton');
@@ -146,7 +159,7 @@ block content
             try {
                 console.log("sending transaction on port " + port)
                 console.log(transaction)
-                await axios.post(`http://192.168.10.58:${port}/transaction`, transaction);
+                await axios.post(`http://localhost:${port}/transaction`, transaction);
                 window.alert("Transaction added");
 
             } catch (error) {

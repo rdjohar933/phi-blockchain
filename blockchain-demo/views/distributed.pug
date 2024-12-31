@@ -27,29 +27,37 @@ block content
           .col-sm-10
             button.btn.btn-primary.ladda-button(data-style='expand-right', id="send-transaction")
               span.ladda-label send transaction
-  .container-fluid
+  .container-lg.shadow-4-strong.pt-2.mt-2
     h1 #{__('Distributed Blockchain')}
     - var peers = {1: 'A', 2: 'B', 3: 'C'}
       each peer, chain in peers
-        h3 #{__('Peer')} #{peer}
-        button.btn.btn-primary.ladda-button(id=`blockmineButton-${peer}`, data-style='expand-right')
-          span.ladda-label #{__('Mine')}
-        button.btn.btn-primary.ladda-button(id=`openFormButton-${peer}`, data-style='expand-right', onclick='openForm()')
-          span.ladda-label Add Transaction
-        .row.row-horizon(id=`chain-${peer}`)
+        .d-flex.align-items-center.justify-content-between.mt-4
+          .d-flex.align-items-center
+            h3.mb-0 #{__('Peer')} #{peer}
+            div.form-check.form-switch.ms-3.ml-4
+              input.form-check-input(type="checkbox", role="switch", checked=true, id= `refreshSwitch-${peer}`)
+              label.form-check-label.small(for=`refreshSwitch-${peer}`) enable auto refresh
+          .ms-auto
+            button.btn.btn-primary.ladda-button(id=`blockmineButton-${peer}`, data-style='expand-right')
+              span.ladda-label #{__('Mine')}
+            button.btn.btn-primary.ladda-button(id=`openFormButton-${peer}`, data-style='expand-right', onclick='openForm()')
+              span.ladda-label Add Transaction
+        .scrollable-horizontal
+          .d-flex.flex-row.mt-4(id=`chain-${peer}`)
+
 
 
   script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
   script.
     $(function() {
-      fetchBlocks("chain-A", 5001)
-      fetchBlocks("chain-B", 5002)
-      fetchBlocks("chain-C", 5003)
+      fetchBlocks("A", 5001, 0)
+      fetchBlocks("B", 5002, 1)
+      fetchBlocks("C", 5003, 2)
       setup();
     });
     async function getChainBlocks(port) {
       try {
-        const response = await axios.get(`http://192.168.10.58:${port}/chain`);
+        const response = await axios.get(`http://localhost:${port}/chain`);
         const blocks = response.data.chain;
         return blocks
     } catch (error) {
@@ -59,7 +67,7 @@ block content
 
     async function getHashedBlock(block, port) {
       try {
-        const response = await axios.post(`http://192.168.10.58:${port}/hash`, block);
+        const response = await axios.post(`http://localhost:${port}/hash`, block);
         block.hash = response.data.hash;
         return block
     } catch (error) {
@@ -71,38 +79,45 @@ block content
       console.log(`retrieved ${blocks.length} blocks from blockchain`)
       return await Promise.all(blocks.map(block => getHashedBlock(block, port)));
     }
-    async function fetchBlocks(elementId, port) {
-      try {
+    async function fetchBlocks(elementId, port, chainId = 0) {
+      if (!document.getElementById("refreshSwitch-"+elementId).checked) return;
 
-        const blockContainer = document.getElementById(elementId);
-        blockContainer.innerHTML = '';
-        const blocks = await getHashedBlocksFromChain(port);
-        for (const block of blocks) {
-          const blockElement = await fetchBlockTemplate(block);
-          const wrapperDiv = document.createElement('div');
-          wrapperDiv.className = 'col-xs-7';
-          wrapperDiv.innerHTML = blockElement;
-          blockContainer.appendChild(wrapperDiv);
-    }
-    } catch (error) {
-    console.error('Error fetching blocks:', error);
-    }
+      const blocks = await getHashedBlocksFromChain(port);
+      const blockContainer = document.getElementById("chain-"+elementId);
+
+      for (const block of blocks) {
+        const existingBlock = document.getElementById('block' + block.index + 'chain' + chainId + 'well');
+        const blockElement = await fetchBlockTemplate(block, chainId);
+        const parser = new DOMParser();
+        const newNode = parser.parseFromString(blockElement, 'text/html').body.firstChild;
+
+        if (existingBlock) {
+          existingBlock.replaceWith(newNode);
+        } else {
+          blockContainer.appendChild(newNode);
+        }
+      }
+      const existingBlocks = blockContainer.children;
+      while (existingBlocks.length > blocks.length) {
+        blockContainer.removeChild(existingBlocks[existingBlocks.length - 1]);
+      }
     }
 
-    async function fetchBlockTemplate(block) {
+
+    async function fetchBlockTemplate(block, chainId = 0) {
       try {
-        const response = await axios.post('/render-block', { block });
+        const response = await axios.post('/render-block', {block, chainId});
         return response.data.html;
-    } catch (error) {
-    console.error('Error fetching block template:', error);
-    return `<div>Error loading block ${block.index}</div>`;
-    }
+      } catch (error) {
+        console.error('Error fetching block template:', error);
+        return `<div>Error loading block ${block.index}</div>`;
+      }
     }
     async function mineBlock(port, button)
     {
       button.disabled=true
       try {
-        await axios.post(`http://192.168.10.58:${port}/block`);
+        await axios.post(`http://localhost:${port}/block`);
       } catch (error) {
         console.error('Error fetching block template:', error);
       }
@@ -110,6 +125,8 @@ block content
 
     }
     function setup() {
+      const refreshInterval = 10000
+
       const buttonA = document.getElementById('blockmineButton-A');
       const buttonB = document.getElementById('blockmineButton-B');
       const buttonC = document.getElementById('blockmineButton-C');
@@ -123,9 +140,9 @@ block content
       formbuttonA.onclick = () => openForm(5001)
       formbuttonB.onclick = () => openForm(5002)
       formbuttonC.onclick = () => openForm(5003)
-      setInterval(()=>fetchBlocks("chain-A",5001), 30000);
-      setInterval(()=>fetchBlocks("chain-B",5002), 30000);
-      setInterval(()=>fetchBlocks("chain-C",5003), 30000);
+      setInterval(()=>fetchBlocks("A",5001, 0), refreshInterval);
+      setInterval(()=>fetchBlocks("B",5002, 1), refreshInterval);
+      setInterval(()=>fetchBlocks("C",5003, 2), refreshInterval);
 
       // Close the form modal
       closeFormButton.onclick = function () {
@@ -158,7 +175,7 @@ block content
       try {
         console.log("sending transaction on port " + port)
         console.log(transaction)
-        await axios.post(`http://192.168.10.58:${port}/transaction`, transaction);
+        await axios.post(`http://localhost:${port}/transaction`, transaction);
         window.alert("Transaction added");
 
       } catch (error) {

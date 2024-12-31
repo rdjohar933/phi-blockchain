@@ -1,43 +1,46 @@
-.well(id='block'+block.index+'chain0well', class='well-success mdl-card mdl-shadow--2dp')
-  form.form-horizontal
+.card.shadow-4-strong.mb-4.ripple-surface-dark.me-4(id='block'+block.index+'chain'+chainId+'well', style='min-width: 600px; max-width: 600px;')
+  .card-header.bg-primary.bg-gradient.text-white
+    .d-flex.justify-content-between.align-items-center
+      h5.mb-0 Block ##{block.index}
+      .badge.bg-white.text-primary.rounded-pill #{block.transactions.length} Transactions
 
-    .form-group
-      label.col-sm-2.control-label(for='block'+block.index+'chain'+block.chain+'number') Block:
-      .col-sm-10
-        .input-group
-          span.input-group-addon #
-          input.form-control(id='block'+block.index+'chain'+block.chain+'number', type='text', value=block.index, disabled)
+  .card-body.bg-white.p-4
+    .row.g-4.mb-1
+      .col-md-6
+        h6.text-uppercase.small.text-muted.fw-bold TIMESTAMP
+        .p-3.rounded-3.bg-light
+          p.mb-0.small #{new Date(block.timestamp * 1000).toLocaleString()}
+      .col-md-6
+        h6.text-uppercase.small.text-muted.fw-bold NONCE
+        .p-3.rounded-3.bg-light
+          p.mb-0.text-primary.small #{block.proof}
+    hr.hr.hr-blurry
+    .mb-1
+      h6.text-uppercase.small.text-muted.fw-bold PREVIOUS BLOCK HASH
+      .p-3.rounded-3.bg-light
+        p.mb-0.font-monospace.text-break.small #{block.previous_hash}
 
-    .form-group
-      label.col-sm-2.control-label(for='block'+block.index+'chain0nonce') Nonce:
-      .col-sm-10
-        input.form-control(id='block'+block.index+'chain0nonce', type='text', value=block.proof, disabled)
-    .form-group
-      label.col-sm-2.control-label Tx:
-      .col-sm-10.scrollable-horizontal
-        each tx in block.transactions
-          .input-group
-            .input-group-addon φ
-            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txvalue', type='text', value=tx.amount, disabled)
-            .input-group-addon From:
-            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txfrom', type='text', value=tx.sender, disabled)
-            .input-group-addon -&gt;
-            input.form-control(id='block' + block.block + 'chain' + block.chain + 'txto', type='text', value=tx.receiver, disabled)
-
-
-    #state.form-group
-      label.col-sm-2.control-label(for='block'+block.index+'chain0previous') Previous hash:
-      .col-sm-10
-        input.form-control(id='block'+block.index+'chain0previous', type='text', value=block.previous_hash, disabled)
-
-    #state.form-group
-      label.col-sm-2.control-label(for='block'+block.index+'chain0hash') Hash:
-      .col-sm-10
-        input.form-control(id='block'+block.index+'chain0hash', type='text', value=block.hash, disabled)
-
-    .form-group
-      .col-sm-2
-        i.icon-spinner.icon-spin.icon-large
-      .col-sm-10
-        // button.btn.btn-primary.ladda-button(id='block'+block.block+'chain'+block.chain+'mineButton', data-style='expand-right')
-        //   span.ladda-label #{__('Mine')}
+    if block.transactions.length > 0
+      h6.text-uppercase.small.text-muted.fw-bold TRANSACTIONS
+      .table-responsive
+        table.table.align-middle.mb-0.table-sm
+          tr
+            th.w-25 Amount
+            th.w-10
+            th.w-25 Sender
+            th.w-15
+            th.w-25 Receiver
+          tbody
+            each tx in block.transactions
+              tr.border-bottom
+                td.text-primary #{tx.amount}
+                td.text-primary.fw-bold φ
+                td.small.text-truncate #{tx.sender}
+                td.text-center
+                  i.fas.fa-arrow-right.text-primary
+                td.small.text-truncate #{tx.receiver}
+    .mb-4.card-footer
+      hr.hr.hr-blurry
+      h6.text-uppercase.small.text-muted.fw-bold BLOCK HASH
+      .p-3.rounded-3.bg-light
+        p.mb-0.font-monospace.text-break.small #{block.hash}

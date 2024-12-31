@@ -28,10 +28,7 @@ body > .container-fluid {
 input {
   font-family: monospace;
 }
-input.form-control[disabled] {
-  background-color: white;
-  color: black; /* Optional: to ensure text is readable */
-}
+
 .well-success {
   background: rgb(223, 240, 216);
 }
@@ -74,5 +71,7 @@ input.form-control[disabled] {
   margin: 5px;
 }
 .scrollable-horizontal {
-  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-x: auto;
+  padding-bottom: 15px; /* Add space for scroll bar */
+  white-space: nowrap; /* Prevent wrapping */
 }

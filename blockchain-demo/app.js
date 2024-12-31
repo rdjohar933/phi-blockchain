@@ -27,44 +27,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use(logger('dev'));
-async function getChainBlocks(port) {
-  try {
-    const response = await axios.get(`http://192.168.10.58:${port}/chain`);
-    const blocks = response.data.chain;
-    return blocks
-  } catch (error) {
-    console.error('Error fetching blocks:', error);
-  }
-}
 
-async function getHashedBlock(block, port){
-  try {
-    const response = await axios.post(`http://192.168.10.58:${port}/hash`, block);
-    block.hash = response.data.hash;
-    return block
-  } catch (error) {
-    console.error('Error fetching blocks:', error);
-  }
-}
-async function getHashedBlocksFromChain(port) {
-  const blocks = await getChainBlocks(port)
-  console.log(`retrieved ${blocks.length} blocks from blockchain`)
-  return await Promise.all(blocks.map(block => getHashedBlock(block, 5001)));
-}
 const pug = require('pug');
 app.post('/render-block', (req, res) => {
-  const { block } = req.body;
+  const { block, chainId } = req.body;
   const compiledFunction = pug.compileFile('./views/includes/block.pug');
-
-  const html = compiledFunction({ block });
+  const html = compiledFunction({ block, chainId });
   res.json({ html });
 });
 
-app.get("/blockchain", async (req, res) => {
-  console.log("loading blockchain");
-  const hashedBlocks = await getHashedBlocksFromChain(5001);
-  res.render('blockchain', { chainBlocks: hashedBlocks });
-})
+
 
 app.use('/', routes);
 

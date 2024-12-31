@@ -11,40 +11,36 @@ html
 
     title Phi Blockchain
 
-    link(rel='stylesheet', href='/stylesheets/lib/bootstrap.min.css')
-    link(rel='stylesheet', href='/stylesheets/lib/bootstrap-theme.min.css')
+    //- Remove Bootstrap CSS since MDB includes Bootstrap
     link(rel='stylesheet', href='/stylesheets/lib/bootstrap-horizon.css')
     link(rel='stylesheet', href='/stylesheets/lib/ladda-themeless.min.css')
-    link(rel='stylesheet', href='/stylesheets/lib/ie10-viewport-bug-workaround.css')
     link(rel='stylesheet', href='/stylesheets/blockchain.css')
 
-    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    //- MDB required files
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.1.0/mdb.min.css')
 
+
+    //- Scripts
     script(src='/javascripts/lib/jquery.min.js')
-    script(src='/javascripts/lib/bootstrap.min.js')
     script(src='/javascripts/lib/spin.min.js')
     script(src='/javascripts/lib/ladda.min.js')
-    script(src='/javascripts/lib/ie10-viewport-bug-workaround.js')
     script(src='/javascripts/lib/sha256.js')
     script(src='/javascripts/blockchain.js')
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
 
   body
-    nav.navbar.navbar-inverse.navbar-fixed-top
-      .container
-        .navbar-header
-          button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar', aria-expanded='false', aria-controls='navbar')
-            span.sr-only Toggle navigation
-            span.icon-bar
-            span.icon-bar
-            span.icon-bar
-          a.navbar-brand(href='/') Phi Blockchain
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+      .container-fluid
+        a.navbar-brand(href='/') Phi Blockchain
+        button.navbar-toggler(type='button' data-mdb-toggle='collapse' data-mdb-target='#navbar')
+          i.fas.fa-bars
         #navbar.collapse.navbar-collapse
-          ul.nav.navbar-nav.navbar-right
-            li(class={active: page === 'blockchain'})
-              a(href='/blockchain') #{__('Blockchain')}
-            li(class={active: page === 'distributed'})
-              a(href='/distributed') #{__('Distributed')}
-
-
+          ul.navbar-nav.ms-auto
+            li.nav-item
+              a.nav-link(href='/blockchain') #{__('Blockchain')}
+            li.nav-item
+              a.nav-link(href='/distributed') #{__('Distributed')}
 
     block content
